@@ -12,14 +12,14 @@ on:
 
 jobs:
   get_metadata:
-    uses: potber/.github/.github/workflows/get_metadata.yml@v1
+    uses: potber/.github/.github/workflows/get_metadata.yml@v2
     with:
       latest: ${{ inputs.latest }}
 
   build_and_push_image:
     needs:
       - get_metadata
-    uses: potber/.github/.github/workflows/build_and_push_image.yml@v1
+    uses: potber/.github/.github/workflows/build_and_push_image.yml@v2
     with:
       image_name: ${{ needs.get_metadata.outputs.image_name }}
       image_names: ${{ needs.get_metadata.outputs.image_names }}

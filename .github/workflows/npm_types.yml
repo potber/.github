@@ -1,5 +1,10 @@
 on:
   workflow_call:
+    inputs:
+      node-version-file:
+        description: "Path to the Node version file. Defaults to '.nvmrc'."
+        default: .nvmrc
+        type: string
 
 jobs:
   types:
@@ -11,7 +16,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version-file: ${{ inputs.node-version-file }}
           cache: npm
       - name: Install dependencies
         run: npm ci
