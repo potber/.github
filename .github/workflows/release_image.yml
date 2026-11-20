@@ -9,6 +9,18 @@ on:
         description: "Whether the image should also be tagged as the latest image. Can be either 'auto', 'true' or 'false'. Defaults to 'auto'."
         default: "auto"
         type: string
+      bunny_app_id:
+        description: "The Bunny Magic Containers App ID to deploy the new image to. Leave empty to skip the Bunny deploy."
+        default: ""
+        type: string
+      bunny_container:
+        description: "The container name inside the Bunny app. Defaults to the repository name."
+        default: ""
+        type: string
+    secrets:
+      BUNNYNET_API_KEY:
+        description: "The bunny.net account API key. Required when 'bunny_app_id' is set."
+        required: false
 
 jobs:
   get_metadata:
@@ -25,3 +37,23 @@ jobs:
       image_names: ${{ needs.get_metadata.outputs.image_names }}
       image_labels: ${{ needs.get_metadata.outputs.image_labels }}
       dockerfile: ${{ inputs.dockerfile }}
+
+  deploy_bunny:
+    name: Deploy to Bunny Magic Containers
+    if: ${{ inputs.bunny_app_id != '' }}
+    needs:
+      - get_metadata
+      - build_and_push_image
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Update container image
+        uses: BunnyWay/actions/container-update-image@931a74b9c45ea9f9f01435fbbf1649830e67d3b3 # main, 2026-10-12
+        with:
+          api_key: ${{ secrets.BUNNYNET_API_KEY }}
+          app_id: ${{ inputs.bunny_app_id }}
+          container: ${{ inputs.bunny_container || github.event.repository.name }}
+          # Same tag the build pushed: semver on release tags, main-<date>-<time>-<sha> on main.
+          image_tag: ${{ needs.get_metadata.outputs.image_version }}
